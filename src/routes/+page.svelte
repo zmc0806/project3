@@ -7,13 +7,29 @@
   let projection;
   let pathGenerator;
   let colorScale;
+  let tooltip = { x: 0, y: 0, text: '', visible: false };
 
   const width = 960;
   const height = 600;
 
+  // Function to show the tooltip
+  function showTooltip(event, d) {
+    tooltip = {
+      x: event.pageX,
+      y: event.pageY,
+      text: `${d.properties.name}: ${d.properties.mortality.toFixed(2)} deaths per 100,000`,
+      visible: true
+    };
+  }
+
+  // Function to hide the tooltip
+  function hideTooltip() {
+    tooltip.visible = false;
+  }
+
   onMount(async () => {
-    const csvData = await d3.csv('annual-mortality-rate-from-seasonal-influenza-ages-65.csv');
-    geojsonData = await d3.json('custom.geo.json');
+    const csvData = await d3.csv('/annual-mortality-rate-from-seasonal-influenza-ages-65.csv');
+    geojsonData = await d3.json('/custom.geo.json');
 
     mortalityRates = new Map(csvData.map(row => [row.Code, +row['rate over65']]));
 
@@ -39,8 +55,53 @@
         d="{pathGenerator(feature)}"
         fill="{colorScale(feature.properties.mortality)}"
         stroke="#fff"
+        on:mouseover="{(event) => showTooltip(event, feature)}"
+        on:mouseout="{hideTooltip}"
       />
     {/each}
   {/if}
 </svg>
+
+{#if tooltip.visible}
+  <div
+    class="tooltip"
+    style="position: absolute; left: {tooltip.x}px; top: {tooltip.y}px; pointer-events: none; background-color: #fff; padding: 5px; border: 1px solid #ccc;"
+  >
+    {tooltip.text}
+  </div>
+{/if}
+
+<style>
+  .tooltip {
+    /* Add additional styles to your tooltip here */
+  }
+</style>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
