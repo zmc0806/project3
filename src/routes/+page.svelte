@@ -125,7 +125,7 @@ function resetLegendHighlight() {
       width={300}
       height={50}
       fill="{colorScale(value)}"
-      stroke="{hoveredCountryMortality !== null && hoveredCountryMortality >= value && hoveredCountryMortality < value + maxMortality / 9 ? 'black' : 'none'}"
+      stroke="{hoveredCountryMortality !== null && hoveredCountryMortality >= value && hoveredCountryMortality < value + maxMortality / 8 ? 'black' : 'none'}"
       stroke-width="2"
       on:mouseover="{() => highlightCountries(value)}"
       on:mouseout="{resetHighlight}"
