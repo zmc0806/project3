@@ -117,12 +117,12 @@ function resetLegendHighlight() {
       Respiratory death rate from seasonal influenza, age 65+, 2011
     </text>
 
-  <g class="legend" transform="translate({(width - legendValues.length * 40) / 2}, {height - 60})">
-    {#each legendValues as value, index}
-    <rect
-      x={index * (300 / legendValues.length)} // Adjust the width based on number of legend values
+    <g class="legend" transform="translate({(width - legendValues.length * 40) / 2}, {height - 60})">
+      {#each legendValues as value, index}
+      <rect
+      x={index * 40 - 80}
       y={0}
-      width={300 / legendValues.length} // Adjust the width based on number of legend values
+      width={300}
       height={50}
       fill="{colorScale(value)}"
       stroke="{hoveredCountryMortality !== null && hoveredCountryMortality >= value && hoveredCountryMortality < value + maxMortality / 9 ? 'black' : 'none'}"
@@ -197,8 +197,6 @@ function resetLegendHighlight() {
     text-anchor: start;
   } 
 </style>
-
-
 
 
 
