@@ -12,11 +12,6 @@
   let legendValues = [];
   let hoveredMortalityRate = null;
   let hoveredCountryMortality = null;
-
-  const numberOfLegendSegments = 9; // Define the number of segments you want
-  colorScale = d3.scaleThreshold().domain([...Array(numberOfLegendSegments).keys()].map(d => d * maxMortality / numberOfLegendSegments)).range(d3.schemeOrRd[numberOfLegendSegments + 1]); // Use a color scheme with one more color than the number of thresholds
-  legendValues = colorScale.domain(); // Use the scale's domain as legend values
-
   function highlightCountryMortality(event, feature) {
     hoveredCountryMortality = feature.properties.mortality;
     showTooltip(event, feature);
@@ -125,24 +120,26 @@ function resetLegendHighlight() {
     <g class="legend" transform="translate({(width - legendValues.length * 40) / 2}, {height - 60})">
       {#each legendValues as value, index}
       <rect
-        x={index * 40}
-        y={0}
-        width={40} // Set the width to match the segment width
-        height={20} // Adjust height as needed
-        fill="{colorScale(value)}"
-        stroke="{hoveredCountryMortality !== null && hoveredCountryMortality >= value && hoveredCountryMortality < value + maxMortality / numberOfLegendSegments ? 'black' : 'none'}"
-        stroke-width="2"
-        // ...[other attributes]...
-      />
-      <text
-        x={(index * 40) + 20} // Center the text in the rect
-        y={30} // Adjust text position as needed
-        font-size="12px"
-        text-anchor="middle"
-        // ...[other attributes]...
-      >
-        {Math.round(value)}
-      </text>
+      x={index * 40 - 80}
+      y={0}
+      width={300}
+      height={50}
+      fill="{colorScale(value)}"
+      stroke="{hoveredCountryMortality !== null && hoveredCountryMortality >= value && hoveredCountryMortality < value + maxMortality / 9 ? 'black' : 'none'}"
+      stroke-width="2"
+      on:mouseover="{() => highlightCountries(value)}"
+      on:mouseout="{resetHighlight}"
+    />
+    <text
+      x={(index * 40)- 80}
+      y={60}
+      font-size="12px"
+      text-anchor="middle"
+      on:mouseover="{() => highlightCountries(value)}"
+      on:mouseout="{resetHighlight}"
+    >
+      {Math.round(value)}
+    </text>
       {/each}
     </g>
   {/if}
@@ -200,9 +197,3 @@ function resetLegendHighlight() {
     text-anchor: start;
   } 
 </style>
-
-
-
-
-
-
