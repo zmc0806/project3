@@ -8,7 +8,7 @@
   let pathGenerator;
   let colorScale;
   let tooltip = { x: 0, y: 0, text: '', visible: false };
-  let maxMortality;
+  let maxMortality = 109;
   let legendValues = [];
   let hoveredMortalityRate = null;
   let hoveredCountryMortality = null;
