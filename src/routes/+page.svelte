@@ -11,43 +11,38 @@
 
   const width = 1160;
   const height = 800;
-  const legendData = [
-    { range: [0, 10], color: '#fee5d9' },
-    { range: [10, 20], color: '#fcae91' },
-    { range: [20, 30], color: '#fb6a4a' },
-    { range: [30, 40], color: '#de2d26' },
-    { range: [40, 50], color: '#a50f15' },
-    // Add more ranges and colors as needed
-  ];
 
-  // Function to apply highlight effect
-  function highlightRange(range) {
-    geojsonData.features.forEach(feature => {
-      feature.properties.opacity = (feature.properties.mortality >= range[0] && feature.properties.mortality <= range[1]) ? 1 : 0.2;
-    });
+  // Function to show the tooltip
+  function showTooltip(event, d) {
+    tooltip = {
+      x: event.pageX,
+      y: event.pageY,
+      text: `${d.properties.name}: ${d.properties.mortality.toFixed(2)} deaths per 100,000`,
+      visible: true
+    };
   }
 
-  // Function to reset highlight effect
-  function resetHighlight() {
-    geojsonData.features.forEach(feature => {
-      feature.properties.opacity = 1;
-    });
+  // Function to hide the tooltip
+  function hideTooltip() {
+    tooltip.visible = false;
   }
 
   onMount(async () => {
-    const csvData = await d3.csv('annual-mortality-rate-from-seasonal-influenza-ages-65.csv');
-    geojsonData = await d3.json('custom.geo.json');
+    const csvData = await d3.csv('/annual-mortality-rate-from-seasonal-influenza-ages-65.csv');
+    geojsonData = await d3.json('/custom.geo.json');
 
     mortalityRates = new Map(csvData.map(row => [row.Code, +row['rate over65']]));
 
+    // Assign mortality rate to geojson based on country code
     geojsonData.features.forEach(feature => {
       feature.properties.mortality = mortalityRates.get(feature.properties.adm0_a3) || 0;
-      feature.properties.opacity = 1; // Add an opacity property
     });
 
+    // Create a projection and path generator
     projection = d3.geoNaturalEarth1().fitSize([width, height], geojsonData);
     pathGenerator = d3.geoPath().projection(projection);
 
+    // Create a color scale
     const maxMortality = Math.max(...csvData.map(row => +row['rate over65']));
     colorScale = d3.scaleSequential([0, maxMortality], d3.interpolateReds);
   });
@@ -60,24 +55,12 @@
         d="{pathGenerator(feature)}"
         fill="{colorScale(feature.properties.mortality)}"
         stroke="#fff"
-        style="opacity: {feature.properties.opacity}"
         on:mouseover="{(event) => showTooltip(event, feature)}"
         on:mouseout="{hideTooltip}"
       />
     {/each}
   {/if}
 </svg>
-
-<div class="legend">
-  {#each legendData as legendItem}
-    <div
-      class="legend-range"
-      style="background-color: {legendItem.color}"
-      on:mouseover="{() => highlightRange(legendItem.range)}"
-      on:mouseout="{resetHighlight}"
-    ></div>
-  {/each}
-</div>
 
 {#if tooltip.visible}
   <div
@@ -92,16 +75,16 @@
   .tooltip {
     /* Add additional styles to your tooltip here */
   }
-  .legend {
-    display: flex;
-    justify-content: center;
-    margin-top: 10px;
-  }
-  .legend-range {
-    width: 20px;
-    height: 20px;
-    display: inline-block;
-    margin: 0 2px;
-    cursor: pointer;
-  }
 </style>
+
+
+
+
+
+
+
+
+
+
+
+
