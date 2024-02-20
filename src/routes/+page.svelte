@@ -12,14 +12,15 @@
   let legendValues = [];
   let hoveredMortalityRate = null;
   let hoveredCountryMortality = null;
-  function highlightCountryMortality(event, feature) {
+
+  let selectedRange = null;
+  function selectRange(value) {
+  selectedRange = value === selectedRange ? null : value; // Toggle the range selection
+}
+  function highlightCountryMortality(event, feature) {  
     hoveredCountryMortality = feature.properties.mortality;
     showTooltip(event, feature);
   }
-  function resetCountryMortality() {
-    hoveredCountryMortality = null;
-  }
-
   function highlightCountries(rate) {
     hoveredMortalityRate = rate;
   }
@@ -71,6 +72,20 @@ function resetLegendHighlight() {
     tooltip.visible = false;
   }
 
+  let sortedCountries = [];
+
+$: if (selectedRange !== null) {
+  sortedCountries = geojsonData.features
+    .filter(feature => feature.properties.mortality >= selectedRange && feature.properties.mortality < selectedRange + maxMortality / 9)
+    .map(feature => ({ name: feature.properties.name, mortality: feature.properties.mortality }))
+    .sort((a, b) => a.mortality - b.mortality);
+} else if (sortedCountries.length > 0 && selectedRange === null) {
+  // Keep the existing list if the selection is toggled off
+  sortedCountries = sortedCountries;
+} else {
+  sortedCountries = [];
+}
+
   onMount(async () => {
     const csvData = await d3.csv('annual-mortality-rate-from-seasonal-influenza-ages-65.csv');
     geojsonData = await d3.json('custom.geo.json');
@@ -89,7 +104,7 @@ function resetLegendHighlight() {
 
     // Create a color scale
     maxMortality = Math.max(...mortalityRates.values());
-    colorScale = d3.scaleSequentialSqrt(d3.interpolateOrRd).domain([0, maxMortality]);
+    colorScale = d3.scaleSequentialSqrt(d3.interpolateRgbBasisClosed(["#2c7bb6", "#abd9e9", "#ffffbf", "#fdae61", "#d7191c"])) .domain([0, maxMortality])
 
     legendValues = Array.from({length: 10}, (_, i) => i * maxMortality / 9);
   
@@ -98,21 +113,22 @@ function resetLegendHighlight() {
 </script>
 <svg width="{width}" height="{height}" style="background-color: #eaeaea;">
   {#if geojsonData && pathGenerator}
-    {#each geojsonData.features as feature}
-      <path
-      d="{pathGenerator(feature)}"
-        fill="{ hoveredMortalityRate === null || (feature.properties.mortality >= hoveredMortalityRate && feature.properties.mortality < hoveredMortalityRate + maxMortality/9) ? colorScale(feature.properties.mortality) : '#ddd' }"
+  
+  {#each geojsonData.features as feature}
+  <path
+    d="{pathGenerator(feature)}"
+    fill="{selectedRange !== null ? (feature.properties.mortality >= selectedRange && feature.properties.mortality < selectedRange + maxMortality/9 ? colorScale(feature.properties.mortality) : '#ddd') : (hoveredMortalityRate === null || (feature.properties.mortality >= hoveredMortalityRate && feature.properties.mortality < hoveredMortalityRate + maxMortality/9) ? colorScale(feature.properties.mortality) : '#ddd')}"
+    stroke="{selectedRange !== null ? 'none' : (hoveredMortalityRate !== null && feature.properties.mortality >= hoveredMortalityRate && feature.properties.mortality < hoveredMortalityRate + maxMortality/9 ? 'black' : '#fff')}"
+    stroke-width="0.5"
+    stroke-opacity="2"
+    on:mouseover="{(event) => highlightBorder(event, feature)}"
+    on:mouseover="{(event) => highlightLegendFromCountry(event, feature)}"
+    on:mouseout="{resetBorder}"
+    on:mouseout="{resetLegendHighlight}"
+  />
+{/each}
 
-        stroke="{(hoveredMortalityRate !== null && feature.properties.
-        mortality >= hoveredMortalityRate && feature.properties.mortality < hoveredMortalityRate + maxMortality/9) ? 'black' : '#fff'}"
-        stroke-width="{(hoveredMortalityRate !== null && feature.properties.mortality >= hoveredMortalityRate && feature.properties.mortality < hoveredMortalityRate + maxMortality/9) ? 0.5 : 0.5}"
-        stroke-opacity="1"
-        on:mouseover="{(event) => highlightBorder(event, feature)}"
-        on:mouseover="{(event) => highlightLegendFromCountry(event, feature)}"
-        on:mouseout="{resetLegendHighlight}"
-        on:mouseout="{resetBorder}"
-      />
-    {/each}
+
     <text x="55%" y="40" text-anchor="middle" font-size="20px" fill="#433">
       Respiratory death rate from seasonal influenza, age 65+, 2011
     </text>
@@ -120,32 +136,43 @@ function resetLegendHighlight() {
     <g class="legend" transform="translate({(width - legendValues.length * 40) / 2}, {height - 60})">
       {#each legendValues as value, index}
       <rect
-      x={index * 40 - 80}
+      x={index * 40}
       y={0}
-      width={300}
+      width={300 / legendValues.length}
       height={50}
       fill="{colorScale(value)}"
-      stroke="{hoveredCountryMortality !== null && hoveredCountryMortality >= value && hoveredCountryMortality < value + maxMortality / 9 ? 'black' : 'none'}"
-      stroke-width="2"
+      stroke="{selectedRange === value ? 'black' : (hoveredCountryMortality !== null && hoveredCountryMortality >= value && hoveredCountryMortality < value + maxMortality / 9 ? 'black' : 'none')}"
+      stroke-width="{selectedRange === value || (hoveredCountryMortality !== null && hoveredCountryMortality >= value && hoveredCountryMortality < value + maxMortality / 9) ? 2 : 0}"
+      on:click="{() => selectRange(value)}"
       on:mouseover="{() => highlightCountries(value)}"
       on:mouseout="{resetHighlight}"
     />
-    <text
-      x={(index * 40)- 80}
-      y={60}
-      font-size="12px"
-      text-anchor="middle"
-      on:mouseover="{() => highlightCountries(value)}"
-      on:mouseout="{resetHighlight}"
-    >
-      {Math.round(value)}
-    </text>
+        <text
+          x={(index * 40-10) + (300 / legendValues.length / 2)} 
+          y={60}
+          font-size="12px"
+          text-anchor="middle"
+          on:mouseover="{() => highlightCountries(value)}"
+          on:mouseout="{resetHighlight}"
+        >
+          {Math.round(value)}
+        </text>
       {/each}
-    </g>
+    </g>    
   {/if}
 </svg>
 
 {#if tooltip.visible}
+<div class="country-list">
+  {#if sortedCountries.length > 0}
+    <ul>
+      {#each sortedCountries as country}
+        <li>{country.name}: {country.mortality.toFixed(2)}</li>
+      {/each}
+    </ul>
+  {/if}
+</div>
+
   <div class="tooltip" style="left: {tooltip.x}px; top: {tooltip.y}px;">
     <div class="tooltip-header">{tooltip.content.title}</div>
     <div class="tooltip-body">
@@ -196,6 +223,25 @@ function resetLegendHighlight() {
     fill: #000;
     text-anchor: start;
   } 
+  .country-list {
+    position: absolute;
+    left: 10px; /* Adjust as necessary */
+    top: 100px; /* Adjust as necessary */
+    background-color: #fff;
+    border: 1px solid #ddd;
+    padding: 10px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    max-height: 600px; /* Adjust as necessary */
+    overflow-y: auto;
+  }
+  .country-list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .country-list li {
+    margin-bottom: 5px;
+  }
 </style>
 
 
