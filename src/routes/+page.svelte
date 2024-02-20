@@ -1,6 +1,15 @@
 <script>
   import { onMount } from 'svelte';
   import * as d3 from 'd3';
+  import marked from 'marked';
+
+  let markdown = `# Hello Markdown
+This is *Svelte* with **Markdown**!`;
+  let htmlContent;
+
+  onMount(() => {
+    htmlContent = marked(markdown);
+  });
 
   let mortalityRates = new Map(); 
   let geojsonData;
@@ -243,3 +252,4 @@ $: if (selectedRange !== null) {
     margin-bottom: 5px;
   }
 </style>
+<div>{@html htmlContent}</div>
