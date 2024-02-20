@@ -1,7 +1,8 @@
 <script>
   import { onMount } from 'svelte';
   import * as d3 from 'd3';
-  import marked from 'marked';
+  import { marked } from 'marked';
+
 
   let markdown = `# Hello Markdown
 This is *Svelte* with **Markdown**!`;
