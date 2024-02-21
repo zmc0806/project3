@@ -1,6 +1,54 @@
 <script>
   import { onMount } from 'svelte';
   import * as d3 from 'd3';
+  import { marked } from 'marked';
+
+
+  let markdown = `Rationale for Design Decisions:
+
+Our visualization project aimed to present the annual mortality rates from seasonal influenza for individuals aged 65 and over in an intuitive and interactive manner. The design decisions were guided by the goal of maximizing clarity, accessibility, and informative value.
+
+**Visual Encodings:**
+- **Choropleth Map:** We chose a choropleth map to geographically represent mortality rates, allowing users to easily grasp spatial patterns and compare rates across countries. This method is particularly effective for displaying statistical data tied to geographical areas.
+
+- **Avoiding Red-Green Color Schemes:** Initially, we considered using a red-orange color scale for its intuitive representation of severity. However, to accommodate users with color vision deficiencies, such as red-green color blindness, we opted against using red-green color schemes. This decision was made to ensure that our visualization is clear and accessible to a wider audience, including those affected by color blindness.
+- **Adopting Color-Blind-Friendly Palettes:** Instead, we selected a color-blind-friendly palette that maintains distinctiveness and clarity without relying on color differentiation that may pose challenges for color-blind users. This approach involved using shades and tones that are easily distinguishable by individuals with various types of color vision, ensuring that our visualization remains effective and inclusive.
+- **Color Scale Implementation:** The color scale we chose utilizes a range of blues and purples, which are generally distinguishable to people with color vision deficiencies. This scale is applied to our choropleth map to indicate mortality rates, with lighter shades representing lower rates and darker shades indicating higher rates. This method preserves our goal of highlighting differences in data while ensuring accessibility.
+
+- **Interactive Legend and Tooltips:** The interactive legend and tooltips enhance user engagement, providing precise data for hovered regions or legend values. This approach was chosen to offer detailed information on demand, reducing cognitive load and improving the user experience.
+
+
+- **Fixed Display on Color Range Selection:** A new feature has been implemented to allow users to click on a specific color range within the legend. This action "locks in" the display to only show countries or regions within that selected mortality rate range.And A box will appear showing the mortality rate for each country in this range in ascending order. By doing so, users can focus on analyzing the data for countries that fall into specific mortality rate categories, enhancing the depth of exploration available within our visualization.
+
+**Alternatives Considered:**
+- We considered using a linear color scale but found the square root scale more effectively differentiated the data for visual analysis.
+- Interactive sliders for temporal data exploration were considered but ultimately not included due to the dataset focusing solely on the year 2011. Future iterations might expand the temporal range for dynamic exploration.
+
+### Overview of Development Process
+
+**Team Collaboration:**
+
+- **Mianchen Zhang** took on the critical roles of sourcing the GeoJSON file necessary for mapping and ensuring that the CSV data correctly matched the GeoJSON's ID system.  This foundational work was essential for the accuracy and integrity of our visualization. Additionally, Mianchen was responsible for creating the initial visual representation, laying the groundwork for the project's interactive elements.
+- **Yulin Chen** was tasked with implementing the remaining aspects of the visualization. Yulin's contributions were pivotal in advancing the project beyond its initial stages, focusing on enhancing interactivity, refining the visual encodings, and ensuring the user interface was both intuitive and engaging.
+- This division of labor allowed our team to efficiently leverage individual strengths, ensuring a smooth development process.
+
+**Challenges and Time Allocation:**
+- **Data Preparation (30% of time):** Aligning the CSV data with the GeoJSON map codes and ensuring accuracy was a significant initial challenge.
+- **Visualization Coding (50% of time):** Implementing the d3.js visual encodings, particularly the interactive elements like tooltips and the legend, took the bulk of development time. Fine-tuning the responsiveness and interactivity required extensive testing and adjustment.
+- **Design (20% of time):** Designing an intuitive and accessible interface was crucial. Efforts were made to ensure the visualization was usable across various devices and screen sizes.
+
+**Reflections:**
+
+Future work could explore additional interactive features, such as temporal sliders or comparative analysis tools.
+
+### Conclusion
+
+Our visualization strives to provide an accessible and informative view of seasonal influenza mortality rates among the elderly in 2011. Through careful design and development decisions, we have created an interactive experience that we believe enhances understanding and engagement with the data. This project not only sheds light on important health metrics but also demonstrates the power of data visualization in communicating complex information effectively.`;
+  let htmlContent;
+
+  onMount(() => {
+    htmlContent = marked(markdown);
+  });
 
   let mortalityRates = new Map(); 
   let geojsonData;
@@ -261,3 +309,4 @@ function resetLegendHighlight() {
 }
 
 </style>
+<div>{@html htmlContent}</div>
