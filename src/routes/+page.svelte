@@ -87,7 +87,7 @@ Our visualization strives to provide an accessible and informative view of seaso
   }
   
   const width = 1600;
-  const height = 900;
+  const height = 1100;
   let selectedCountry = null;
 
   function highlightLegendFromCountry(event, feature) {
