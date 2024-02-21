@@ -86,7 +86,7 @@ Our visualization strives to provide an accessible and informative view of seaso
     hoveredMortalityRate = null;
   }
   
-  const width = 1700;
+  const width = 1600;
   const height = 1200;
   let selectedCountry = null;
 
