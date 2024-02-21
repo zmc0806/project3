@@ -288,7 +288,7 @@ function resetLegendHighlight() {
   padding: 10px;
 
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-  max-height: 100%;
+  max-height: 130%;
   overflow-y: auto;
 }
 
