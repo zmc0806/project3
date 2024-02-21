@@ -15,12 +15,23 @@
 
   let selectedRange = null;
   function selectRange(value) {
-  selectedRange = value === selectedRange ? null : value; // Toggle the range selection
-}
-  function highlightCountryMortality(event, feature) {  
-    hoveredCountryMortality = feature.properties.mortality;
-    showTooltip(event, feature);
+  if (selectedRange === value) {
+    // Toggle off if the same value is clicked
+    selectedRange = null;
+    sortedCountries = [];
+  } else {
+    selectedRange = value;
+    // Update sortedCountries based on the new selected range
+    sortedCountries = geojsonData.features
+      .filter(feature => feature.properties.mortality >= selectedRange && feature.properties.mortality < selectedRange + maxMortality / 9)
+      .map(feature => ({ name: feature.properties.name, mortality: feature.properties.mortality }))
+      .sort((a, b) => b.mortality - a.mortality);
   }
+}
+
+
+
+
   function highlightCountries(rate) {
     hoveredMortalityRate = rate;
   }
@@ -74,17 +85,7 @@ function resetLegendHighlight() {
 
   let sortedCountries = [];
 
-$: if (selectedRange !== null) {
-  sortedCountries = geojsonData.features
-    .filter(feature => feature.properties.mortality >= selectedRange && feature.properties.mortality < selectedRange + maxMortality / 9)
-    .map(feature => ({ name: feature.properties.name, mortality: feature.properties.mortality }))
-    .sort((a, b) => a.mortality - b.mortality);
-} else if (sortedCountries.length > 0 && selectedRange === null) {
-  // Keep the existing list if the selection is toggled off
-  sortedCountries = sortedCountries;
-} else {
-  sortedCountries = [];
-}
+
 
   onMount(async () => {
     const csvData = await d3.csv('annual-mortality-rate-from-seasonal-influenza-ages-65.csv');
@@ -163,15 +164,23 @@ $: if (selectedRange !== null) {
 </svg>
 
 {#if tooltip.visible}
-<div class="country-list">
-  {#if sortedCountries.length > 0}
-    <ul>
+{#if selectedRange !== null}
+  <div class="country-table">
+    <table>
+      <tr>
+        <th>Country</th>
+        <th>Mortality Rate</th>
+      </tr>
       {#each sortedCountries as country}
-        <li>{country.name}: {country.mortality.toFixed(2)}</li>
+        <tr>
+          <td>{country.name}</td>
+          <td>{country.mortality.toFixed(2)}</td>
+        </tr>
       {/each}
-    </ul>
-  {/if}
-</div>
+    </table>
+  </div>
+{/if}
+
 
   <div class="tooltip" style="left: {tooltip.x}px; top: {tooltip.y}px;">
     <div class="tooltip-header">{tooltip.content.title}</div>
@@ -223,23 +232,32 @@ $: if (selectedRange !== null) {
     fill: #000;
     text-anchor: start;
   } 
-  .country-list {
-    position: absolute;
-    left: 10px; /* Adjust as necessary */
-    top: 100px; /* Adjust as necessary */
-    background-color: #fff;
-    border: 1px solid #ddd;
-    padding: 10px;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    max-height: 600px; /* Adjust as necessary */
-    overflow-y: auto;
-  }
-  .country-list ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-  .country-list li {
-    margin-bottom: 5px;
-  }
+  .country-table {
+  position: absolute;
+  left: 10px;
+  top: 0px;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.country-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.country-table th, .country-table td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+}
+
+.country-table th {
+  background-color: #f2f2f2;
+}
+
 </style>
